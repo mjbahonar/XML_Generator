@@ -27,7 +27,13 @@ class XMLGeneratorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("XML File Generator")
-        self.root.geometry("1500x900")  # Set the default window size here
+        self.root.geometry("1500x800")  # Set the default window size here
+
+        
+        # Correctly set the path to the icon for both development and executable
+        icon_path = self.resource_path("logo.ico")
+        self.root.iconbitmap(icon_path)
+
 
         # Create Menu
         self.create_menu()
@@ -54,7 +60,6 @@ class XMLGeneratorApp:
         file_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="File", menu=file_menu)
         file_menu.add_command(label="New", command=self.new_file)
-        file_menu.add_command(label="Open", command=self.open_file)
         file_menu.add_command(label="Save", command=self.generate_xml)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.quit)
@@ -63,73 +68,19 @@ class XMLGeneratorApp:
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Help", menu=help_menu)
         help_menu.add_command(label="About", command=self.show_about)
+        help_menu.add_command(label="Contact Us", command=self.show_contact_us)
 
     def new_file(self):
         self.clear_fields()
         messagebox.showinfo("New File", "All fields have been reset.")
 
-    def open_file(self):
-        # Open XML file and populate fields
-        file_path = filedialog.askopenfilename(filetypes=[("XML files", "*.xml")])
-        if file_path:
-            try:
-                tree = ET.parse(file_path)
-                root = tree.getroot()
-
-                # Populate journal information fields
-                for key, entry in self.journal_entries.items():
-                    element = root.find(key)
-                    if element is not None:
-                        entry.delete(0, tk.END)
-                        entry.insert(0, element.text)
-
-                # Populate article information fields
-                article = root.find("article")
-                if article is not None:
-                    for key, entry in self.article_entries.items():
-                        element = article.find(key)
-                        if element is not None:
-                            entry.delete(0, tk.END)
-                            entry.insert(0, element.text)
-
-                    # Populate abstract fields
-                    abstract = article.find("abstract")
-                    if abstract is not None:
-                        self.abstract_text.delete("1.0", tk.END)
-                        self.abstract_text.insert("1.0", abstract.text)
-
-                    abstract_fa = article.find("abstract_fa")
-                    if abstract_fa is not None:
-                        self.abstract_text_fa.delete("1.0", tk.END)
-                        self.abstract_text_fa.insert("1.0", abstract_fa.text)
-
-                # Populate author fields
-                self.clear_authors()
-                author_list = root.find("author_list")
-                if author_list is not None:
-                    for author in author_list.findall("author"):
-                        self.add_author()
-                        author_fields = [
-                            "first_name", "middle_name", "last_name", "suffix",
-                            "first_name_fa", "middle_name_fa", "last_name_fa", "suffix_fa",
-                            "email", "code", "orcid", "coreauthor", "affiliation", "affiliation_fa"
-                        ]
-                        for field, entry in zip(author_fields, self.authors[-1][1]):
-                            if field == "coreauthor":
-                                entry.set(author.find(field).text == "Yes")
-                            else:
-                                elem = author.find(field)
-                                if elem is not None:
-                                    entry.delete(0, tk.END)
-                                    entry.insert(0, elem.text)
-
-                messagebox.showinfo("Open File", f"Opened file: {file_path}")
-            except ET.ParseError:
-                messagebox.showerror("Error", "Failed to parse the XML file.")
-
     def show_about(self):
         # Editable help content
         messagebox.showinfo("About", "XML File Generator\nVersion 1.0\n\nThis tool helps generate XML files for journal articles. Use the tabs to input journal, article, and author details.")
+
+    def show_contact_us(self):
+        # Contact us information
+        messagebox.showinfo("Contact Us", "For support or inquiries, please contact us at:\n\nEmail: support@example.com\nPhone: +123-456-7890")
 
     def create_journal_tab(self):
         # Journal Information Tab
@@ -168,6 +119,8 @@ class XMLGeneratorApp:
             label.grid(row=i, column=0, sticky=tk.W, padx=(10, 5), pady=2)  # Consistent padding
             entry = ttk.Entry(journal_frame, width=50)
             entry.grid(row=i, column=1, padx=(5, 10), pady=2, sticky=tk.W)  # Align to start of column
+            entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
+            entry.bind("<Control-v>", lambda e: None)
             self.journal_entries[key] = entry
 
         # Publication Dates Section
@@ -214,16 +167,22 @@ class XMLGeneratorApp:
             label.grid(row=i, column=0, sticky=tk.W, padx=(10, 5), pady=2)  # Consistent padding
             entry = ttk.Entry(article_frame, width=50)
             entry.grid(row=i, column=1, padx=(5, 10), pady=2, sticky=tk.W)  # Align to start of column
+            entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
+            entry.bind("<Control-v>", lambda e: None)
             self.article_entries[key] = entry
 
         # Abstract as Rich Text Box
         ttk.Label(article_frame, text="Abstract:", anchor='w').grid(row=len(fields), column=0, sticky=tk.W, padx=(10, 5), pady=2)
         self.abstract_text = tk.Text(article_frame, height=5, width=50, wrap="word")
         self.abstract_text.grid(row=len(fields), column=1, padx=(5, 10), pady=2, sticky=tk.W)
+        self.abstract_text.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
+        self.abstract_text.bind("<Control-v>", lambda e: None)
 
         ttk.Label(article_frame, text="Abstract (FA):", anchor='w').grid(row=len(fields) + 1, column=0, sticky=tk.W, padx=(10, 5), pady=2)
         self.abstract_text_fa = tk.Text(article_frame, height=5, width=50, wrap="word")
         self.abstract_text_fa.grid(row=len(fields) + 1, column=1, padx=(5, 10), pady=2, sticky=tk.W)
+        self.abstract_text_fa.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
+        self.abstract_text_fa.bind("<Control-v>", lambda e: None)
 
         # Clear Button
         ttk.Button(article_frame, text="Clear", command=self.clear_article_fields).grid(row=len(fields) + 2, column=0, columnspan=2, pady=10)
@@ -251,14 +210,20 @@ class XMLGeneratorApp:
         ttk.Label(date_frame, text="Year:").grid(row=0, column=2, sticky=tk.W, padx=(10, 5))
         year_entry = ttk.Entry(date_frame, width=5)
         year_entry.grid(row=0, column=3, padx=(5, 10))
+        year_entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
+        year_entry.bind("<Control-v>", lambda e: None)
 
         ttk.Label(date_frame, text="Month:").grid(row=0, column=4, sticky=tk.W, padx=(10, 5))
         month_entry = ttk.Entry(date_frame, width=5)
         month_entry.grid(row=0, column=5, padx=(5, 10))
+        month_entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
+        month_entry.bind("<Control-v>", lambda e: None)
 
         ttk.Label(date_frame, text="Day:").grid(row=0, column=6, sticky=tk.W, padx=(10, 5))
         day_entry = ttk.Entry(date_frame, width=5)
         day_entry.grid(row=0, column=7, padx=(5, 10))
+        day_entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
+        day_entry.bind("<Control-v>", lambda e: None)
 
         self.pub_dates.append((type_combobox, year_entry, month_entry, day_entry))
 
@@ -284,6 +249,8 @@ class XMLGeneratorApp:
             else:
                 entry = ttk.Entry(author_frame, width=width)
                 entry.grid(row=i//4, column=(i % 4) * 2 + 1, padx=(5, 10), sticky=tk.W)
+                entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
+                entry.bind("<Control-v>", lambda e: None)
                 author_entries.append(entry)
 
         remove_button = ttk.Button(author_frame, text="Remove", command=lambda: self.remove_author(author_frame))
