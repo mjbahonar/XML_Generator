@@ -18,7 +18,6 @@ class ScrollableFrame(ttk.Frame):
         )
 
         canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-
         canvas.configure(yscrollcommand=scrollbar.set)
 
         canvas.pack(side="left", fill="both", expand=True)
@@ -28,7 +27,7 @@ class XMLGeneratorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("XML File Generator")
-        self.root.geometry("1400x800")  # Increased size for better visibility
+        self.root.geometry("900x700")  # Set the default window size here
 
         # Notebook for Tabs
         self.notebook = ttk.Notebook(root)
@@ -77,9 +76,9 @@ class XMLGeneratorApp:
         self.journal_entries = {}
         for i, (label_text, key) in enumerate(fields):
             label = ttk.Label(journal_frame, text=label_text + ":", anchor='w')
-            label.grid(row=i, column=0, sticky=tk.W, padx=5, pady=2)
+            label.grid(row=i, column=0, sticky=tk.W, padx=(10, 5), pady=2)  # Consistent padding
             entry = ttk.Entry(journal_frame, width=50)
-            entry.grid(row=i, column=1, padx=5, pady=2)
+            entry.grid(row=i, column=1, padx=(5, 10), pady=2, sticky=tk.W)  # Align to start of column
             self.journal_entries[key] = entry
 
         # Publication Dates Section
@@ -115,19 +114,19 @@ class XMLGeneratorApp:
         self.article_entries = {}
         for i, (label_text, key) in enumerate(fields):
             label = ttk.Label(article_frame, text=label_text + ":", anchor='w')
-            label.grid(row=i, column=0, sticky=tk.W, padx=5, pady=2)
+            label.grid(row=i, column=0, sticky=tk.W, padx=(10, 5), pady=2)  # Consistent padding
             entry = ttk.Entry(article_frame, width=50)
-            entry.grid(row=i, column=1, padx=5, pady=2)
+            entry.grid(row=i, column=1, padx=(5, 10), pady=2, sticky=tk.W)  # Align to start of column
             self.article_entries[key] = entry
 
         # Abstract as Rich Text Box
-        ttk.Label(article_frame, text="Abstract:", anchor='w').grid(row=len(fields), column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Label(article_frame, text="Abstract:", anchor='w').grid(row=len(fields), column=0, sticky=tk.W, padx=(10, 5), pady=2)
         self.abstract_text = tk.Text(article_frame, height=5, width=50, wrap="word")
-        self.abstract_text.grid(row=len(fields), column=1, padx=5, pady=2)
+        self.abstract_text.grid(row=len(fields), column=1, padx=(5, 10), pady=2, sticky=tk.W)
 
-        ttk.Label(article_frame, text="Abstract (FA):", anchor='w').grid(row=len(fields) + 1, column=0, sticky=tk.W, padx=5, pady=2)
+        ttk.Label(article_frame, text="Abstract (FA):", anchor='w').grid(row=len(fields) + 1, column=0, sticky=tk.W, padx=(10, 5), pady=2)
         self.abstract_text_fa = tk.Text(article_frame, height=5, width=50, wrap="word")
-        self.abstract_text_fa.grid(row=len(fields) + 1, column=1, padx=5, pady=2)
+        self.abstract_text_fa.grid(row=len(fields) + 1, column=1, padx=(5, 10), pady=2, sticky=tk.W)
 
     def create_authors_tab(self):
         # Authors Management Tab
@@ -144,21 +143,21 @@ class XMLGeneratorApp:
         date_frame = ttk.Frame(self.date_frame)
         date_frame.grid(pady=5, sticky='ew')
 
-        ttk.Label(date_frame, text="Type:").grid(row=0, column=0, sticky=tk.W, padx=5)
+        ttk.Label(date_frame, text="Type:").grid(row=0, column=0, sticky=tk.W, padx=(10, 5))
         type_combobox = ttk.Combobox(date_frame, values=["jalali", "gregorian"], width=10)
-        type_combobox.grid(row=0, column=1, padx=5)
+        type_combobox.grid(row=0, column=1, padx=(5, 10))
 
-        ttk.Label(date_frame, text="Year:").grid(row=0, column=2, sticky=tk.W, padx=5)
+        ttk.Label(date_frame, text="Year:").grid(row=0, column=2, sticky=tk.W, padx=(10, 5))
         year_entry = ttk.Entry(date_frame, width=5)
-        year_entry.grid(row=0, column=3, padx=5)
+        year_entry.grid(row=0, column=3, padx=(5, 10))
 
-        ttk.Label(date_frame, text="Month:").grid(row=0, column=4, sticky=tk.W, padx=5)
+        ttk.Label(date_frame, text="Month:").grid(row=0, column=4, sticky=tk.W, padx=(10, 5))
         month_entry = ttk.Entry(date_frame, width=5)
-        month_entry.grid(row=0, column=5, padx=5)
+        month_entry.grid(row=0, column=5, padx=(5, 10))
 
-        ttk.Label(date_frame, text="Day:").grid(row=0, column=6, sticky=tk.W, padx=5)
+        ttk.Label(date_frame, text="Day:").grid(row=0, column=6, sticky=tk.W, padx=(10, 5))
         day_entry = ttk.Entry(date_frame, width=5)
-        day_entry.grid(row=0, column=7, padx=5)
+        day_entry.grid(row=0, column=7, padx=(5, 10))
 
         self.pub_dates.append((type_combobox, year_entry, month_entry, day_entry))
 
@@ -175,9 +174,9 @@ class XMLGeneratorApp:
 
         author_entries = []
         for i, (label, width) in enumerate(fields):
-            ttk.Label(author_frame, text=label + ":", anchor='w').grid(row=i//4, column=(i % 4) * 2, sticky=tk.W, padx=5)
+            ttk.Label(author_frame, text=label + ":", anchor='w').grid(row=i//4, column=(i % 4) * 2, sticky=tk.W, padx=(10, 5))
             entry = ttk.Entry(author_frame, width=width)
-            entry.grid(row=i//4, column=(i % 4) * 2 + 1, padx=5)
+            entry.grid(row=i//4, column=(i % 4) * 2 + 1, padx=(5, 10), sticky=tk.W)
             author_entries.append(entry)
 
         remove_button = ttk.Button(author_frame, text="Remove", command=lambda: self.remove_author(author_frame))
