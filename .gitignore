@@ -1,0 +1,6 @@
+# Ignore all .png files
+*.png
+
+# Ignore folder1 and folder2
+build/
+dist/
