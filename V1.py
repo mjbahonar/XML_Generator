@@ -3,14 +3,36 @@ from tkinter import ttk, filedialog, messagebox
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
+class ScrollableFrame(ttk.Frame):
+    def __init__(self, container, *args, **kwargs):
+        super().__init__(container, *args, **kwargs)
+        canvas = tk.Canvas(self)
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.scrollable_frame = ttk.Frame(canvas)
+
+        self.scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
+
+        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
 class XMLGeneratorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("XML File Generator")
+        self.root.geometry("1400x800")  # Increased size for better visibility
 
         # Notebook for Tabs
         self.notebook = ttk.Notebook(root)
-        self.notebook.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.notebook.pack(expand=True, fill='both', padx=10, pady=10)
 
         # Create Tabs
         self.create_journal_tab()
@@ -19,12 +41,16 @@ class XMLGeneratorApp:
 
         # Generate Button
         self.generate_button = ttk.Button(root, text="Generate XML", command=self.generate_xml)
-        self.generate_button.grid(row=1, column=0, pady=10)
+        self.generate_button.pack(pady=10)
 
     def create_journal_tab(self):
         # Journal Information Tab
-        self.journal_tab = ttk.Frame(self.notebook)
+        self.journal_tab = ScrollableFrame(self.notebook)
         self.notebook.add(self.journal_tab, text="Journal Information")
+
+        # Frame for Journal Information
+        journal_frame = ttk.Frame(self.journal_tab.scrollable_frame, padding="10")
+        journal_frame.pack(fill='both', expand=True)
 
         fields = [
             ("Journal Title", "title"),
@@ -50,22 +76,27 @@ class XMLGeneratorApp:
 
         self.journal_entries = {}
         for i, (label_text, key) in enumerate(fields):
-            ttk.Label(self.journal_tab, text=label_text + ":").grid(row=i, column=0, sticky=tk.W, padx=5, pady=2)
-            entry = ttk.Entry(self.journal_tab, width=50)
+            label = ttk.Label(journal_frame, text=label_text + ":", anchor='w')
+            label.grid(row=i, column=0, sticky=tk.W, padx=5, pady=2)
+            entry = ttk.Entry(journal_frame, width=50)
             entry.grid(row=i, column=1, padx=5, pady=2)
             self.journal_entries[key] = entry
 
         # Publication Dates Section
-        self.date_frame = ttk.LabelFrame(self.journal_tab, text="Publication Dates", padding="10")
-        self.date_frame.grid(row=len(fields), column=0, columnspan=2, pady=10, padx=5)
+        self.date_frame = ttk.LabelFrame(journal_frame, text="Publication Dates", padding="10")
+        self.date_frame.grid(row=len(fields), column=0, columnspan=2, pady=10, padx=5, sticky='ew')
 
         self.pub_dates = []
         ttk.Button(self.date_frame, text="Add Date", command=self.add_date).grid(row=0, column=0, sticky=(tk.W, tk.E))
 
     def create_article_tab(self):
         # Article Information Tab
-        self.article_tab = ttk.Frame(self.notebook)
+        self.article_tab = ScrollableFrame(self.notebook)
         self.notebook.add(self.article_tab, text="Article Information")
+
+        # Frame for Article Information
+        article_frame = ttk.Frame(self.article_tab.scrollable_frame, padding="10")
+        article_frame.pack(fill='both', expand=True)
 
         fields = [
             ("Article Title", "article_title"),
@@ -83,56 +114,57 @@ class XMLGeneratorApp:
 
         self.article_entries = {}
         for i, (label_text, key) in enumerate(fields):
-            ttk.Label(self.article_tab, text=label_text + ":").grid(row=i, column=0, sticky=tk.W, padx=5, pady=2)
-            entry = ttk.Entry(self.article_tab, width=50)
+            label = ttk.Label(article_frame, text=label_text + ":", anchor='w')
+            label.grid(row=i, column=0, sticky=tk.W, padx=5, pady=2)
+            entry = ttk.Entry(article_frame, width=50)
             entry.grid(row=i, column=1, padx=5, pady=2)
             self.article_entries[key] = entry
 
         # Abstract as Rich Text Box
-        ttk.Label(self.article_tab, text="Abstract:").grid(row=len(fields), column=0, sticky=tk.W, padx=5, pady=2)
-        self.abstract_text = tk.Text(self.article_tab, height=5, width=50)
+        ttk.Label(article_frame, text="Abstract:", anchor='w').grid(row=len(fields), column=0, sticky=tk.W, padx=5, pady=2)
+        self.abstract_text = tk.Text(article_frame, height=5, width=50, wrap="word")
         self.abstract_text.grid(row=len(fields), column=1, padx=5, pady=2)
 
-        ttk.Label(self.article_tab, text="Abstract (FA):").grid(row=len(fields) + 1, column=0, sticky=tk.W, padx=5, pady=2)
-        self.abstract_text_fa = tk.Text(self.article_tab, height=5, width=50)
+        ttk.Label(article_frame, text="Abstract (FA):", anchor='w').grid(row=len(fields) + 1, column=0, sticky=tk.W, padx=5, pady=2)
+        self.abstract_text_fa = tk.Text(article_frame, height=5, width=50, wrap="word")
         self.abstract_text_fa.grid(row=len(fields) + 1, column=1, padx=5, pady=2)
 
     def create_authors_tab(self):
         # Authors Management Tab
-        self.authors_tab = ttk.Frame(self.notebook)
+        self.authors_tab = ScrollableFrame(self.notebook)
         self.notebook.add(self.authors_tab, text="Author(s)")
 
-        self.authors_frame = ttk.LabelFrame(self.authors_tab, text="Authors", padding="10")
-        self.authors_frame.grid(row=0, column=0, columnspan=2, pady=10, padx=5)
+        self.authors_frame = ttk.LabelFrame(self.authors_tab.scrollable_frame, text="Authors", padding="10")
+        self.authors_frame.pack(fill='both', expand=True, padx=10, pady=10)
 
         self.authors = []
-        ttk.Button(self.authors_frame, text="Add Author", command=self.add_author).grid(row=0, column=0, sticky=(tk.W, tk.E))
+        ttk.Button(self.authors_frame, text="Add Author", command=self.add_author).pack(pady=5)
 
     def add_date(self):
         date_frame = ttk.Frame(self.date_frame)
-        date_frame.grid(pady=5)
+        date_frame.grid(pady=5, sticky='ew')
 
-        ttk.Label(date_frame, text="Type:").grid(row=0, column=0)
+        ttk.Label(date_frame, text="Type:").grid(row=0, column=0, sticky=tk.W, padx=5)
         type_combobox = ttk.Combobox(date_frame, values=["jalali", "gregorian"], width=10)
-        type_combobox.grid(row=0, column=1)
+        type_combobox.grid(row=0, column=1, padx=5)
 
-        ttk.Label(date_frame, text="Year:").grid(row=0, column=2)
+        ttk.Label(date_frame, text="Year:").grid(row=0, column=2, sticky=tk.W, padx=5)
         year_entry = ttk.Entry(date_frame, width=5)
-        year_entry.grid(row=0, column=3)
+        year_entry.grid(row=0, column=3, padx=5)
 
-        ttk.Label(date_frame, text="Month:").grid(row=0, column=4)
+        ttk.Label(date_frame, text="Month:").grid(row=0, column=4, sticky=tk.W, padx=5)
         month_entry = ttk.Entry(date_frame, width=5)
-        month_entry.grid(row=0, column=5)
+        month_entry.grid(row=0, column=5, padx=5)
 
-        ttk.Label(date_frame, text="Day:").grid(row=0, column=6)
+        ttk.Label(date_frame, text="Day:").grid(row=0, column=6, sticky=tk.W, padx=5)
         day_entry = ttk.Entry(date_frame, width=5)
-        day_entry.grid(row=0, column=7)
+        day_entry.grid(row=0, column=7, padx=5)
 
         self.pub_dates.append((type_combobox, year_entry, month_entry, day_entry))
 
     def add_author(self):
-        author_frame = ttk.Frame(self.authors_frame)
-        author_frame.grid(pady=5)
+        author_frame = ttk.Frame(self.authors_frame, padding="5")
+        author_frame.pack(pady=5, fill='x')
 
         fields = [
             ("First Name", 15), ("Middle Name", 15), ("Last Name", 15), ("Suffix", 10),
@@ -143,13 +175,13 @@ class XMLGeneratorApp:
 
         author_entries = []
         for i, (label, width) in enumerate(fields):
-            ttk.Label(author_frame, text=label + ":").grid(row=i//4, column=(i % 4) * 2, sticky=tk.W)
+            ttk.Label(author_frame, text=label + ":", anchor='w').grid(row=i//4, column=(i % 4) * 2, sticky=tk.W, padx=5)
             entry = ttk.Entry(author_frame, width=width)
-            entry.grid(row=i//4, column=(i % 4) * 2 + 1)
+            entry.grid(row=i//4, column=(i % 4) * 2 + 1, padx=5)
             author_entries.append(entry)
 
         remove_button = ttk.Button(author_frame, text="Remove", command=lambda: self.remove_author(author_frame))
-        remove_button.grid(row=len(fields)//4 + 1, column=0, columnspan=8)
+        remove_button.grid(row=len(fields)//4 + 1, column=0, columnspan=8, pady=5)
 
         self.authors.append((author_frame, author_entries))
 
