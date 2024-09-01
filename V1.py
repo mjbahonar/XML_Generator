@@ -29,7 +29,7 @@ class XMLGeneratorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("XML File Generator")
-        self.root.geometry("1500x900")  # Set the default window size here
+        self.root.geometry("1500x800")  # Set the default window size here
 
         # Set the program icon using the resource_path method
         icon_path = self.resource_path("logo.ico")
@@ -128,8 +128,7 @@ class XMLGeneratorApp:
             label.grid(row=i, column=0, sticky=tk.W, padx=(10, 5), pady=2)  # Consistent padding
             entry = ttk.Entry(journal_frame, width=50)
             entry.grid(row=i, column=1, padx=(5, 10), pady=2, sticky=tk.W)  # Align to start of column
-            entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
-            entry.bind("<Control-v>", lambda e: None)
+            self.bind_copy_paste(entry)  # Enable copy-paste operations
             self.journal_entries[key] = entry
 
         # Publication Dates Section
@@ -176,22 +175,19 @@ class XMLGeneratorApp:
             label.grid(row=i, column=0, sticky=tk.W, padx=(10, 5), pady=2)  # Consistent padding
             entry = ttk.Entry(article_frame, width=50)
             entry.grid(row=i, column=1, padx=(5, 10), pady=2, sticky=tk.W)  # Align to start of column
-            entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
-            entry.bind("<Control-v>", lambda e: None)
+            self.bind_copy_paste(entry)  # Enable copy-paste operations
             self.article_entries[key] = entry
 
         # Abstract as Rich Text Box
         ttk.Label(article_frame, text="Abstract:", anchor='w').grid(row=len(fields), column=0, sticky=tk.W, padx=(10, 5), pady=2)
         self.abstract_text = tk.Text(article_frame, height=5, width=50, wrap="word")
         self.abstract_text.grid(row=len(fields), column=1, padx=(5, 10), pady=2, sticky=tk.W)
-        self.abstract_text.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
-        self.abstract_text.bind("<Control-v>", lambda e: None)
+        self.bind_copy_paste(self.abstract_text)  # Enable copy-paste operations
 
         ttk.Label(article_frame, text="Abstract (FA):", anchor='w').grid(row=len(fields) + 1, column=0, sticky=tk.W, padx=(10, 5), pady=2)
         self.abstract_text_fa = tk.Text(article_frame, height=5, width=50, wrap="word")
         self.abstract_text_fa.grid(row=len(fields) + 1, column=1, padx=(5, 10), pady=2, sticky=tk.W)
-        self.abstract_text_fa.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
-        self.abstract_text_fa.bind("<Control-v>", lambda e: None)
+        self.bind_copy_paste(self.abstract_text_fa)  # Enable copy-paste operations
 
         # Clear Button
         ttk.Button(article_frame, text="Clear", command=self.clear_article_fields).grid(row=len(fields) + 2, column=0, columnspan=2, pady=10)
@@ -219,20 +215,17 @@ class XMLGeneratorApp:
         ttk.Label(date_frame, text="Year:").grid(row=0, column=2, sticky=tk.W, padx=(10, 5))
         year_entry = ttk.Entry(date_frame, width=5)
         year_entry.grid(row=0, column=3, padx=(5, 10))
-        year_entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
-        year_entry.bind("<Control-v>", lambda e: None)
+        self.bind_copy_paste(year_entry)  # Enable copy-paste operations
 
         ttk.Label(date_frame, text="Month:").grid(row=0, column=4, sticky=tk.W, padx=(10, 5))
         month_entry = ttk.Entry(date_frame, width=5)
         month_entry.grid(row=0, column=5, padx=(5, 10))
-        month_entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
-        month_entry.bind("<Control-v>", lambda e: None)
+        self.bind_copy_paste(month_entry)  # Enable copy-paste operations
 
         ttk.Label(date_frame, text="Day:").grid(row=0, column=6, sticky=tk.W, padx=(10, 5))
         day_entry = ttk.Entry(date_frame, width=5)
         day_entry.grid(row=0, column=7, padx=(5, 10))
-        day_entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
-        day_entry.bind("<Control-v>", lambda e: None)
+        self.bind_copy_paste(day_entry)  # Enable copy-paste operations
 
         self.pub_dates.append((type_combobox, year_entry, month_entry, day_entry))
 
@@ -258,8 +251,7 @@ class XMLGeneratorApp:
             else:
                 entry = ttk.Entry(author_frame, width=width)
                 entry.grid(row=i//4, column=(i % 4) * 2 + 1, padx=(5, 10), sticky=tk.W)
-                entry.bind("<Control-c>", lambda e: None)  # Enable copy-paste operations
-                entry.bind("<Control-v>", lambda e: None)
+                self.bind_copy_paste(entry)  # Enable copy-paste operations
                 author_entries.append(entry)
 
         remove_button = ttk.Button(author_frame, text="Remove", command=lambda: self.remove_author(author_frame))
@@ -409,6 +401,13 @@ class XMLGeneratorApp:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(xmlstr)
             messagebox.showinfo("Success", "XML file generated successfully!")
+
+    def bind_copy_paste(self, widget):
+        """Enable copy, cut, paste, and select all for entry and text widgets"""
+        widget.bind("<Control-c>", lambda e: widget.event_generate("<<Copy>>"))
+        widget.bind("<Control-x>", lambda e: widget.event_generate("<<Cut>>"))
+        widget.bind("<Control-v>", lambda e: widget.event_generate("<<Paste>>"))
+        widget.bind("<Control-a>", lambda e: widget.event_generate("<<SelectAll>>"))
 
 def main():
     root = tk.Tk()
