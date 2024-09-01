@@ -29,6 +29,9 @@ class XMLGeneratorApp:
         self.root.title("XML File Generator")
         self.root.geometry("1500x900")  # Set the default window size here
 
+        # Create Menu
+        self.create_menu()
+
         # Notebook for Tabs
         self.notebook = ttk.Notebook(root)
         self.notebook.pack(expand=True, fill='both', padx=10, pady=10)
@@ -41,6 +44,47 @@ class XMLGeneratorApp:
         # Generate Button
         self.generate_button = ttk.Button(root, text="Generate XML", command=self.generate_xml)
         self.generate_button.pack(pady=10)
+
+    def create_menu(self):
+        # Creating the menu bar
+        menubar = tk.Menu(self.root)
+        self.root.config(menu=menubar)
+
+        # File menu
+        file_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="New", command=self.new_file)
+        file_menu.add_command(label="Open", command=self.open_file)
+        file_menu.add_command(label="Save", command=self.generate_xml)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.root.quit)
+
+        # Help menu
+        help_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Help", menu=help_menu)
+        help_menu.add_command(label="About", command=self.show_about)
+
+    def new_file(self):
+        # Reset all fields to default state
+        for entry in self.journal_entries.values():
+            entry.delete(0, tk.END)
+        for entry in self.article_entries.values():
+            entry.delete(0, tk.END)
+        self.abstract_text.delete("1.0", tk.END)
+        self.abstract_text_fa.delete("1.0", tk.END)
+        for author_frame, entries in self.authors:
+            self.remove_author(author_frame)
+
+        messagebox.showinfo("New File", "All fields have been reset.")
+
+    def open_file(self):
+        # Open XML file (dummy function, can be expanded)
+        file_path = filedialog.askopenfilename(filetypes=[("XML files", "*.xml")])
+        if file_path:
+            messagebox.showinfo("Open File", f"Opened file: {file_path}")
+
+    def show_about(self):
+        messagebox.showinfo("About", "XML File Generator\nVersion 1.0")
 
     def create_journal_tab(self):
         # Journal Information Tab
@@ -307,8 +351,15 @@ class XMLGeneratorApp:
         # Format XML to be readable
         xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="   ")
 
+        # Get default name for save dialog
+        default_name = self.article_entries.get("article_title").get() or "Untitled_Article"
+
         # Save File Dialog
-        file_path = filedialog.asksaveasfilename(defaultextension=".xml", filetypes=[("XML files", "*.xml")])
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".xml",
+            filetypes=[("XML files", "*.xml")],
+            initialfile=default_name
+        )
         if file_path:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(xmlstr)
