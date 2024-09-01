@@ -1,3 +1,5 @@
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import xml.etree.ElementTree as ET
@@ -27,13 +29,11 @@ class XMLGeneratorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("XML File Generator")
-        self.root.geometry("1500x800")  # Set the default window size here
+        self.root.geometry("1500x900")  # Set the default window size here
 
-        
-        # Correctly set the path to the icon for both development and executable
+        # Set the program icon using the resource_path method
         icon_path = self.resource_path("logo.ico")
         self.root.iconbitmap(icon_path)
-
 
         # Create Menu
         self.create_menu()
@@ -50,6 +50,15 @@ class XMLGeneratorApp:
         # Generate Button
         self.generate_button = ttk.Button(root, text="Generate XML", command=self.generate_xml)
         self.generate_button.pack(pady=10)
+
+    def resource_path(self, relative_path):
+        """ Get the absolute path to the resource, works for dev and PyInstaller """
+        try:
+            # PyInstaller creates a temporary folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except AttributeError:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
 
     def create_menu(self):
         # Creating the menu bar
