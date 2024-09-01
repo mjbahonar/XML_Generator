@@ -65,26 +65,71 @@ class XMLGeneratorApp:
         help_menu.add_command(label="About", command=self.show_about)
 
     def new_file(self):
-        # Reset all fields to default state
-        for entry in self.journal_entries.values():
-            entry.delete(0, tk.END)
-        for entry in self.article_entries.values():
-            entry.delete(0, tk.END)
-        self.abstract_text.delete("1.0", tk.END)
-        self.abstract_text_fa.delete("1.0", tk.END)
-        for author_frame, entries in self.authors:
-            self.remove_author(author_frame)
-
+        self.clear_fields()
         messagebox.showinfo("New File", "All fields have been reset.")
 
     def open_file(self):
-        # Open XML file (dummy function, can be expanded)
+        # Open XML file and populate fields
         file_path = filedialog.askopenfilename(filetypes=[("XML files", "*.xml")])
         if file_path:
-            messagebox.showinfo("Open File", f"Opened file: {file_path}")
+            try:
+                tree = ET.parse(file_path)
+                root = tree.getroot()
+
+                # Populate journal information fields
+                for key, entry in self.journal_entries.items():
+                    element = root.find(key)
+                    if element is not None:
+                        entry.delete(0, tk.END)
+                        entry.insert(0, element.text)
+
+                # Populate article information fields
+                article = root.find("article")
+                if article is not None:
+                    for key, entry in self.article_entries.items():
+                        element = article.find(key)
+                        if element is not None:
+                            entry.delete(0, tk.END)
+                            entry.insert(0, element.text)
+
+                    # Populate abstract fields
+                    abstract = article.find("abstract")
+                    if abstract is not None:
+                        self.abstract_text.delete("1.0", tk.END)
+                        self.abstract_text.insert("1.0", abstract.text)
+
+                    abstract_fa = article.find("abstract_fa")
+                    if abstract_fa is not None:
+                        self.abstract_text_fa.delete("1.0", tk.END)
+                        self.abstract_text_fa.insert("1.0", abstract_fa.text)
+
+                # Populate author fields
+                self.clear_authors()
+                author_list = root.find("author_list")
+                if author_list is not None:
+                    for author in author_list.findall("author"):
+                        self.add_author()
+                        author_fields = [
+                            "first_name", "middle_name", "last_name", "suffix",
+                            "first_name_fa", "middle_name_fa", "last_name_fa", "suffix_fa",
+                            "email", "code", "orcid", "coreauthor", "affiliation", "affiliation_fa"
+                        ]
+                        for field, entry in zip(author_fields, self.authors[-1][1]):
+                            if field == "coreauthor":
+                                entry.set(author.find(field).text == "Yes")
+                            else:
+                                elem = author.find(field)
+                                if elem is not None:
+                                    entry.delete(0, tk.END)
+                                    entry.insert(0, elem.text)
+
+                messagebox.showinfo("Open File", f"Opened file: {file_path}")
+            except ET.ParseError:
+                messagebox.showerror("Error", "Failed to parse the XML file.")
 
     def show_about(self):
-        messagebox.showinfo("About", "XML File Generator\nVersion 1.0")
+        # Editable help content
+        messagebox.showinfo("About", "XML File Generator\nVersion 1.0\n\nThis tool helps generate XML files for journal articles. Use the tabs to input journal, article, and author details.")
 
     def create_journal_tab(self):
         # Journal Information Tab
@@ -132,12 +177,13 @@ class XMLGeneratorApp:
         self.pub_dates = []
         ttk.Button(self.date_frame, text="Add Date", command=self.add_date).grid(row=0, column=0, sticky=(tk.W, tk.E))
 
-        # Default Buttons
-        default_buttons_frame = ttk.Frame(journal_frame)
-        default_buttons_frame.grid(row=len(fields) + 1, column=0, columnspan=2, pady=10)
+        # Default Buttons and Clear Button
+        buttons_frame = ttk.Frame(journal_frame)
+        buttons_frame.grid(row=len(fields) + 1, column=0, columnspan=2, pady=10)
 
-        ttk.Button(default_buttons_frame, text="Default 1", command=self.apply_default_1).grid(row=0, column=0, padx=5)
-        ttk.Button(default_buttons_frame, text="Default 2", command=self.apply_default_2).grid(row=0, column=1, padx=5)
+        ttk.Button(buttons_frame, text="Default 1", command=self.apply_default_1).grid(row=0, column=0, padx=5)
+        ttk.Button(buttons_frame, text="Default 2", command=self.apply_default_2).grid(row=0, column=1, padx=5)
+        ttk.Button(buttons_frame, text="Clear", command=self.clear_journal_fields).grid(row=0, column=2, padx=5)
 
     def create_article_tab(self):
         # Article Information Tab
@@ -179,6 +225,9 @@ class XMLGeneratorApp:
         self.abstract_text_fa = tk.Text(article_frame, height=5, width=50, wrap="word")
         self.abstract_text_fa.grid(row=len(fields) + 1, column=1, padx=(5, 10), pady=2, sticky=tk.W)
 
+        # Clear Button
+        ttk.Button(article_frame, text="Clear", command=self.clear_article_fields).grid(row=len(fields) + 2, column=0, columnspan=2, pady=10)
+
     def create_authors_tab(self):
         # Authors Management Tab
         self.authors_tab = ScrollableFrame(self.notebook)
@@ -189,6 +238,7 @@ class XMLGeneratorApp:
 
         self.authors = []
         ttk.Button(self.authors_frame, text="Add Author", command=self.add_author).pack(pady=5)
+        ttk.Button(self.authors_frame, text="Clear", command=self.clear_authors).pack(pady=5)
 
     def add_date(self):
         date_frame = ttk.Frame(self.date_frame)
@@ -244,6 +294,25 @@ class XMLGeneratorApp:
     def remove_author(self, frame):
         frame.destroy()
         self.authors = [author for author in self.authors if author[0] != frame]
+
+    def clear_fields(self):
+        self.clear_journal_fields()
+        self.clear_article_fields()
+        self.clear_authors()
+
+    def clear_journal_fields(self):
+        for entry in self.journal_entries.values():
+            entry.delete(0, tk.END)
+
+    def clear_article_fields(self):
+        for entry in self.article_entries.values():
+            entry.delete(0, tk.END)
+        self.abstract_text.delete("1.0", tk.END)
+        self.abstract_text_fa.delete("1.0", tk.END)
+
+    def clear_authors(self):
+        for author_frame, _ in list(self.authors):  # Convert to list to avoid modification during iteration
+            self.remove_author(author_frame)
 
     def apply_default_1(self):
         # Predefined values for Default 1
