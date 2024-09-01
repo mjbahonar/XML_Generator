@@ -27,7 +27,7 @@ class XMLGeneratorApp:
     def __init__(self, root):
         self.root = root
         self.root.title("XML File Generator")
-        self.root.geometry("900x700")  # Set the default window size here
+        self.root.geometry("1500x900")  # Set the default window size here
 
         # Notebook for Tabs
         self.notebook = ttk.Notebook(root)
@@ -87,6 +87,13 @@ class XMLGeneratorApp:
 
         self.pub_dates = []
         ttk.Button(self.date_frame, text="Add Date", command=self.add_date).grid(row=0, column=0, sticky=(tk.W, tk.E))
+
+        # Default Buttons
+        default_buttons_frame = ttk.Frame(journal_frame)
+        default_buttons_frame.grid(row=len(fields) + 1, column=0, columnspan=2, pady=10)
+
+        ttk.Button(default_buttons_frame, text="Default 1", command=self.apply_default_1).grid(row=0, column=0, padx=5)
+        ttk.Button(default_buttons_frame, text="Default 2", command=self.apply_default_2).grid(row=0, column=1, padx=5)
 
     def create_article_tab(self):
         # Article Information Tab
@@ -175,9 +182,15 @@ class XMLGeneratorApp:
         author_entries = []
         for i, (label, width) in enumerate(fields):
             ttk.Label(author_frame, text=label + ":", anchor='w').grid(row=i//4, column=(i % 4) * 2, sticky=tk.W, padx=(10, 5))
-            entry = ttk.Entry(author_frame, width=width)
-            entry.grid(row=i//4, column=(i % 4) * 2 + 1, padx=(5, 10), sticky=tk.W)
-            author_entries.append(entry)
+            if label == "Core Author (Yes/No)":  # Core author as a boolean checkbox
+                var = tk.BooleanVar()
+                checkbox = ttk.Checkbutton(author_frame, variable=var)
+                checkbox.grid(row=i//4, column=(i % 4) * 2 + 1, padx=(5, 10), sticky=tk.W)
+                author_entries.append(var)
+            else:
+                entry = ttk.Entry(author_frame, width=width)
+                entry.grid(row=i//4, column=(i % 4) * 2 + 1, padx=(5, 10), sticky=tk.W)
+                author_entries.append(entry)
 
         remove_button = ttk.Button(author_frame, text="Remove", command=lambda: self.remove_author(author_frame))
         remove_button.grid(row=len(fields)//4 + 1, column=0, columnspan=8, pady=5)
@@ -187,6 +200,60 @@ class XMLGeneratorApp:
     def remove_author(self, frame):
         frame.destroy()
         self.authors = [author for author in self.authors if author[0] != frame]
+
+    def apply_default_1(self):
+        # Predefined values for Default 1
+        defaults = {
+            "title": "Default Journal Title 1",
+            "title_fa": "عنوان مجله 1",
+            "short_title": "Short Title 1",
+            "subject": "Medical Sciences",
+            "web_url": "http://default1.com",
+            "journal_hbi_system_id": "1",
+            "journal_hbi_system_user": "admin",
+            "journal_id_issn": "1234-5678",
+            "journal_id_issn_online": "8765-4321",
+            "journal_id_pii": "PII-001",
+            "journal_id_doi": "10.1000/default1",
+            "journal_id_iranmedex": "IR001",
+            "journal_id_magiran": "MAG001",
+            "journal_id_sid": "SID001",
+            "journal_id_nlai": "NLAI001",
+            "journal_id_science": "SCI001",
+            "language": "fa",
+            "volume": "10",
+            "number": "1"
+        }
+        for key, value in defaults.items():
+            self.journal_entries[key].delete(0, tk.END)
+            self.journal_entries[key].insert(0, value)
+
+    def apply_default_2(self):
+        # Predefined values for Default 2
+        defaults = {
+            "title": "Default Journal Title 2",
+            "title_fa": "عنوان مجله 2",
+            "short_title": "Short Title 2",
+            "subject": "Engineering",
+            "web_url": "http://default2.com",
+            "journal_hbi_system_id": "2",
+            "journal_hbi_system_user": "user2",
+            "journal_id_issn": "2233-4455",
+            "journal_id_issn_online": "5544-3322",
+            "journal_id_pii": "PII-002",
+            "journal_id_doi": "10.1000/default2",
+            "journal_id_iranmedex": "IR002",
+            "journal_id_magiran": "MAG002",
+            "journal_id_sid": "SID002",
+            "journal_id_nlai": "NLAI002",
+            "journal_id_science": "SCI002",
+            "language": "en",
+            "volume": "20",
+            "number": "2"
+        }
+        for key, value in defaults.items():
+            self.journal_entries[key].delete(0, tk.END)
+            self.journal_entries[key].insert(0, value)
 
     def generate_xml(self):
         root = ET.Element("journal")
@@ -230,8 +297,12 @@ class XMLGeneratorApp:
                       "email", "code", "orcid", "coreauthor", "affiliation", "affiliation_fa"]
 
             for field, entry in zip(fields, entries):
-                elem = ET.SubElement(author, field)
-                elem.text = entry.get() if field != "coreauthor" else "Yes" if entry.get().lower() == "yes" else "No"
+                if field == "coreauthor":
+                    elem = ET.SubElement(author, field)
+                    elem.text = "Yes" if entry.get() else "No"  # Set as Yes/No based on boolean checkbox
+                else:
+                    elem = ET.SubElement(author, field)
+                    elem.text = entry.get()
 
         # Format XML to be readable
         xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="   ")
