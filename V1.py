@@ -403,10 +403,23 @@ class XMLGeneratorApp:
             messagebox.showinfo("Success", "XML file generated successfully!")
 
     def bind_copy_paste(self, widget):
-        """Enable copy, cut, paste, and select all for entry and text widgets"""
+        """Enable copy, cut, paste, and select all for entry and text widgets with custom paste handling"""
         widget.bind("<Control-c>", lambda e: widget.event_generate("<<Copy>>"))
         widget.bind("<Control-x>", lambda e: widget.event_generate("<<Cut>>"))
-        widget.bind("<Control-v>", lambda e: widget.event_generate("<<Paste>>"))
+        
+        # Custom paste handler to prevent pasting twice
+        def custom_paste(event):
+            try:
+                # Get clipboard content
+                clipboard = widget.clipboard_get()
+                # Insert clipboard content at the current position
+                widget.insert(tk.INSERT, clipboard)
+            except tk.TclError:
+                pass  # Handle cases where clipboard is empty or unavailable
+
+            return "break"  # Prevent the default paste behavior
+
+        widget.bind("<Control-v>", custom_paste)
         widget.bind("<Control-a>", lambda e: widget.event_generate("<<SelectAll>>"))
 
 def main():
