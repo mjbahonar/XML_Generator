@@ -142,8 +142,8 @@ class XMLGeneratorApp:
         buttons_frame = ttk.Frame(journal_frame)
         buttons_frame.grid(row=len(fields) + 1, column=0, columnspan=2, pady=10)
 
-        ttk.Button(buttons_frame, text="Default 1", command=self.apply_default_1).grid(row=0, column=0, padx=5)
-        ttk.Button(buttons_frame, text="Default 2", command=self.apply_default_2).grid(row=0, column=1, padx=5)
+        ttk.Button(buttons_frame, text="JIDS", command=self.apply_default_1).grid(row=0, column=0, padx=5)
+        ttk.Button(buttons_frame, text="JZMS", command=self.apply_default_2).grid(row=0, column=1, padx=5)
         ttk.Button(buttons_frame, text="Clear", command=self.clear_journal_fields).grid(row=0, column=2, padx=5)
 
     def create_article_tab(self):
@@ -285,25 +285,25 @@ class XMLGeneratorApp:
     def apply_default_1(self):
         # Predefined values for Default 1
         defaults = {
-            "title": "Default Journal Title 1",
-            "title_fa": "عنوان مجله 1",
-            "short_title": "Short Title 1",
+            "title": "Journal of Isfahan Dental School",
+            "title_fa": "مجله دانکشده دندانپزشکی",
+            "short_title": "JIDS",
             "subject": "Medical Sciences",
-            "web_url": "http://default1.com",
-            "journal_hbi_system_id": "1",
-            "journal_hbi_system_user": "admin",
-            "journal_id_issn": "1234-5678",
-            "journal_id_issn_online": "8765-4321",
-            "journal_id_pii": "PII-001",
-            "journal_id_doi": "10.1000/default1",
-            "journal_id_iranmedex": "IR001",
-            "journal_id_magiran": "MAG001",
-            "journal_id_sid": "SID001",
-            "journal_id_nlai": "NLAI001",
-            "journal_id_science": "SCI001",
+            "web_url": "http://jids.ir",
+            "journal_hbi_system_id": "",
+            "journal_hbi_system_user": "",
+            "journal_id_issn": "1735-255X",
+            "journal_id_issn_online": "",
+            "journal_id_pii": "",
+            "journal_id_doi": "",
+            "journal_id_iranmedex": "",
+            "journal_id_magiran": "",
+            "journal_id_sid": "",
+            "journal_id_nlai": "",
+            "journal_id_science": "",
             "language": "fa",
-            "volume": "10",
-            "number": "1"
+            "volume": "",
+            "number": ""
         }
         for key, value in defaults.items():
             self.journal_entries[key].delete(0, tk.END)
@@ -312,25 +312,25 @@ class XMLGeneratorApp:
     def apply_default_2(self):
         # Predefined values for Default 2
         defaults = {
-            "title": "Default Journal Title 2",
-            "title_fa": "عنوان مجله 2",
-            "short_title": "Short Title 2",
+            "title": "Journal of Zabol Medical school",
+            "title_fa": "مجمله دانشگاه زابل",
+            "short_title": "ZJMS",
             "subject": "Engineering",
-            "web_url": "http://default2.com",
-            "journal_hbi_system_id": "2",
-            "journal_hbi_system_user": "user2",
-            "journal_id_issn": "2233-4455",
-            "journal_id_issn_online": "5544-3322",
-            "journal_id_pii": "PII-002",
-            "journal_id_doi": "10.1000/default2",
-            "journal_id_iranmedex": "IR002",
-            "journal_id_magiran": "MAG002",
-            "journal_id_sid": "SID002",
-            "journal_id_nlai": "NLAI002",
-            "journal_id_science": "SCI002",
-            "language": "en",
-            "volume": "20",
-            "number": "2"
+            "web_url": "http://jzms.ir",
+            "journal_hbi_system_id": "",
+            "journal_hbi_system_user": "",
+            "journal_id_issn": "2645-880X",
+            "journal_id_issn_online": "2645-7180",
+            "journal_id_pii": "",
+            "journal_id_doi": "",
+            "journal_id_iranmedex": "",
+            "journal_id_magiran": "",
+            "journal_id_sid": "",
+            "journal_id_nlai": "",
+            "journal_id_science": "",
+            "language": "fa",
+            "volume": "",
+            "number": ""
         }
         for key, value in defaults.items():
             self.journal_entries[key].delete(0, tk.END)
