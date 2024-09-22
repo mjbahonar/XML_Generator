@@ -73,11 +73,58 @@ class XMLGeneratorApp:
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.quit)
 
+        # Edit menu for Copy, Cut, Paste
+        edit_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Edit", menu=edit_menu)
+        edit_menu.add_command(label="Select All", command=self.edit_select_all)
+        edit_menu.add_command(label="Copy", command=self.edit_copy)
+        edit_menu.add_command(label="Cut", command=self.edit_cut)
+        edit_menu.add_command(label="Paste", command=self.edit_paste)
+        file_menu.add_separator()
+        file_menu.add_command(label="Clear All", command=self.clear_fields)
+
+        # Default menu for applying predefined values (JIDS and JZMS)
+        default_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Defaults", menu=default_menu)
+        default_menu.add_command(label="JIDS", command=self.apply_default_1)
+        default_menu.add_command(label="JZMS", command=self.apply_default_2)
+
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Help", menu=help_menu)
         help_menu.add_command(label="About", command=self.show_about)
         help_menu.add_command(label="Contact Us", command=self.show_contact_us)
+
+
+
+    def edit_copy(self):
+        widget = self.root.focus_get()
+        try:
+            widget.event_generate("<<Copy>>")
+        except:
+            pass  # Handle if the widget doesn't support copy
+
+    def edit_cut(self):
+        widget = self.root.focus_get()
+        try:
+            widget.event_generate("<<Cut>>")
+        except:
+            pass  # Handle if the widget doesn't support cut
+
+    def edit_paste(self):
+        widget = self.root.focus_get()
+        try:
+            widget.event_generate("<<Paste>>")
+        except:
+            pass  # Handle if the widget doesn't support paste
+
+    def edit_select_all(self):
+        widget = self.root.focus_get()
+        try:
+            widget.event_generate("<<SelectAll>>")
+        except:
+            pass  # Handle if the widget doesn't support select all
+
 
     def new_file(self):
         self.clear_fields()
@@ -85,11 +132,11 @@ class XMLGeneratorApp:
 
     def show_about(self):
         # Editable help content
-        messagebox.showinfo("About", "XML File Generator\nVersion 1.0\n\nThis tool helps generate XML files for journal articles. Use the tabs to input journal, article, and author details.")
+        messagebox.showinfo("About", "XML File Generator\nVersion 1.1\n\nThis tool helps generate XML files for journal articles. Use the tabs to input journal, article, and author details.")
 
     def show_contact_us(self):
         # Contact us information
-        messagebox.showinfo("Contact Us", "For support or inquiries, please contact us at:\n\nEmail: support@example.com\nPhone: +123-456-7890")
+        messagebox.showinfo("Contact Us", "Contact Us\n\nPlease contact me in Telegram with https://t.me/thegrupmy")
 
     def create_journal_tab(self):
         # Journal Information Tab
@@ -328,9 +375,9 @@ class XMLGeneratorApp:
             "journal_id_sid": "",
             "journal_id_nlai": "",
             "journal_id_science": "",
-            "language": "fa",
-            "volume": "",
-            "number": ""
+            "language": "en",
+            "volume": "20",
+            "number": "2"
         }
         for key, value in defaults.items():
             self.journal_entries[key].delete(0, tk.END)

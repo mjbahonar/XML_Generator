@@ -31,12 +31,12 @@ class XMLGeneratorApp:
         self.root.title("XML File Generator")
         self.root.geometry("1500x800")  # Set the default window size here
 
-        # Add the Undo stack and history tracking
-        self.undo_stack = []
-
         # Set the program icon using the resource_path method
         icon_path = self.resource_path("logo.ico")
         self.root.iconbitmap(icon_path)
+
+        # Bind global key release for cut/copy/paste functionality
+        self.root.bind_all("<Control-v>", self.handle_paste)
 
         # Create Menu
         self.create_menu()
@@ -76,54 +76,40 @@ class XMLGeneratorApp:
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.quit)
 
-        # Edit menu for Undo
-        edit_menu = tk.Menu(menubar, tearoff=0)
-        menubar.add_cascade(label="Edit", menu=edit_menu)
-        edit_menu.add_command(label="Undo", command=self.undo)
-
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Help", menu=help_menu)
         help_menu.add_command(label="About", command=self.show_about)
         help_menu.add_command(label="Contact Us", command=self.show_contact_us)
 
-    def undo(self):
-        """Undo the last change."""
-        if self.undo_stack:
-            last_action = self.undo_stack.pop()  # Retrieve the last action from the stack
-            field, previous_value = last_action
-            if isinstance(field, tk.Entry):
-                field.delete(0, tk.END)
-                field.insert(0, previous_value)
-            elif isinstance(field, tk.Text):
-                field.delete("1.0", tk.END)
-                field.insert("1.0", previous_value)
-
-    def track_changes(self, widget):
-        """Track changes in the widget for undo."""
-        if isinstance(widget, tk.Entry):
-            self.undo_stack.append((widget, widget.get()))
-        elif isinstance(widget, tk.Text):
-            self.undo_stack.append((widget, widget.get("1.0", tk.END)))
-
     def new_file(self):
         self.clear_fields()
         messagebox.showinfo("New File", "All fields have been reset.")
 
     def show_about(self):
-        # Editable help content
         messagebox.showinfo("About", "XML File Generator\nVersion 1.0\n\nThis tool helps generate XML files for journal articles. Use the tabs to input journal, article, and author details.")
 
     def show_contact_us(self):
-        # Contact us information
         messagebox.showinfo("Contact Us", "For support or inquiries, please contact us at:\n\nEmail: support@example.com\nPhone: +123-456-7890")
+
+    def handle_paste(self, event):
+        """ Handle paste manually without double-pasting """
+        widget = event.widget
+        try:
+            # Get clipboard content
+            clipboard = widget.clipboard_get()
+            # Insert clipboard content at the current position
+            widget.insert(tk.INSERT, clipboard)
+        except tk.TclError:
+            pass  # Handle cases where clipboard is empty or unavailable
+
+        return "break"  # Prevent the default paste behavior from running twice
 
     def create_journal_tab(self):
         # Journal Information Tab
         self.journal_tab = ScrollableFrame(self.notebook)
         self.notebook.add(self.journal_tab, text="Journal Information")
 
-        # Frame for Journal Information
         journal_frame = ttk.Frame(self.journal_tab.scrollable_frame, padding="10")
         journal_frame.pack(fill='both', expand=True)
 
@@ -152,12 +138,11 @@ class XMLGeneratorApp:
         self.journal_entries = {}
         for i, (label_text, key) in enumerate(fields):
             label = ttk.Label(journal_frame, text=label_text + ":", anchor='w')
-            label.grid(row=i, column=0, sticky=tk.W, padx=(10, 5), pady=2)  # Consistent padding
+            label.grid(row=i, column=0, sticky=tk.W, padx=(10, 5), pady=2)
             entry = ttk.Entry(journal_frame, width=50)
-            entry.grid(row=i, column=1, padx=(5, 10), pady=2, sticky=tk.W)  # Align to start of column
-            self.bind_copy_paste(entry)  # Enable copy-paste operations
-            entry.bind("<KeyRelease>", lambda e, field=entry: self.track_changes(field))  # Track changes for undo
+            entry.grid(row=i, column=1, padx=(5, 10), pady=2, sticky=tk.W)
             self.journal_entries[key] = entry
+
 
         # Publication Dates Section
         self.date_frame = ttk.LabelFrame(journal_frame, text="Publication Dates", padding="10")
@@ -204,7 +189,6 @@ class XMLGeneratorApp:
             entry = ttk.Entry(article_frame, width=50)
             entry.grid(row=i, column=1, padx=(5, 10), pady=2, sticky=tk.W)  # Align to start of column
             self.bind_copy_paste(entry)  # Enable copy-paste operations
-            entry.bind("<KeyRelease>", lambda e, field=entry: self.track_changes(field))  # Track changes for undo
             self.article_entries[key] = entry
 
         # Abstract as Rich Text Box
@@ -212,13 +196,11 @@ class XMLGeneratorApp:
         self.abstract_text = tk.Text(article_frame, height=5, width=50, wrap="word")
         self.abstract_text.grid(row=len(fields), column=1, padx=(5, 10), pady=2, sticky=tk.W)
         self.bind_copy_paste(self.abstract_text)  # Enable copy-paste operations
-        self.abstract_text.bind("<KeyRelease>", lambda e: self.track_changes(self.abstract_text))
 
         ttk.Label(article_frame, text="Abstract (FA):", anchor='w').grid(row=len(fields) + 1, column=0, sticky=tk.W, padx=(10, 5), pady=2)
         self.abstract_text_fa = tk.Text(article_frame, height=5, width=50, wrap="word")
         self.abstract_text_fa.grid(row=len(fields) + 1, column=1, padx=(5, 10), pady=2, sticky=tk.W)
         self.bind_copy_paste(self.abstract_text_fa)  # Enable copy-paste operations
-        self.abstract_text_fa.bind("<KeyRelease>", lambda e: self.track_changes(self.abstract_text_fa))
 
         # Clear Button
         ttk.Button(article_frame, text="Clear", command=self.clear_article_fields).grid(row=len(fields) + 2, column=0, columnspan=2, pady=10)
@@ -247,19 +229,16 @@ class XMLGeneratorApp:
         year_entry = ttk.Entry(date_frame, width=5)
         year_entry.grid(row=0, column=3, padx=(5, 10))
         self.bind_copy_paste(year_entry)  # Enable copy-paste operations
-        year_entry.bind("<KeyRelease>", lambda e, field=year_entry: self.track_changes(field))
 
         ttk.Label(date_frame, text="Month:").grid(row=0, column=4, sticky=tk.W, padx=(10, 5))
         month_entry = ttk.Entry(date_frame, width=5)
         month_entry.grid(row=0, column=5, padx=(5, 10))
         self.bind_copy_paste(month_entry)  # Enable copy-paste operations
-        month_entry.bind("<KeyRelease>", lambda e, field=month_entry: self.track_changes(field))
 
         ttk.Label(date_frame, text="Day:").grid(row=0, column=6, sticky=tk.W, padx=(10, 5))
         day_entry = ttk.Entry(date_frame, width=5)
         day_entry.grid(row=0, column=7, padx=(5, 10))
         self.bind_copy_paste(day_entry)  # Enable copy-paste operations
-        day_entry.bind("<KeyRelease>", lambda e, field=day_entry: self.track_changes(field))
 
         self.pub_dates.append((type_combobox, year_entry, month_entry, day_entry))
 
@@ -286,7 +265,6 @@ class XMLGeneratorApp:
                 entry = ttk.Entry(author_frame, width=width)
                 entry.grid(row=i//4, column=(i % 4) * 2 + 1, padx=(5, 10), sticky=tk.W)
                 self.bind_copy_paste(entry)  # Enable copy-paste operations
-                entry.bind("<KeyRelease>", lambda e, field=entry: self.track_changes(field))  # Track changes for undo
                 author_entries.append(entry)
 
         remove_button = ttk.Button(author_frame, text="Remove", command=lambda: self.remove_author(author_frame))
@@ -363,9 +341,9 @@ class XMLGeneratorApp:
             "journal_id_sid": "",
             "journal_id_nlai": "",
             "journal_id_science": "",
-            "language": "fa",
-            "volume": "",
-            "number": ""
+            "language": "en",
+            "volume": "20",
+            "number": "2"
         }
         for key, value in defaults.items():
             self.journal_entries[key].delete(0, tk.END)
@@ -456,6 +434,7 @@ class XMLGeneratorApp:
 
         widget.bind("<Control-v>", custom_paste)
         widget.bind("<Control-a>", lambda e: widget.event_generate("<<SelectAll>>"))
+
 
 def main():
     root = tk.Tk()
