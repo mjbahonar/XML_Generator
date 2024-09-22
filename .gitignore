@@ -1,5 +1,6 @@
 # Ignore all .png files
 *.png
+temp.py
 
 # Ignore folder1 and folder2
 build/
