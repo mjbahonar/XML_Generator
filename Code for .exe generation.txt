@@ -1,0 +1,1 @@
+pyinstaller --onefile --icon=logo.ico --add-data "logo.ico;." V1.py
