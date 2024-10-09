@@ -1,9 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog
 import pandas as pd
-import xml.etree.ElementTree as ET
+from lxml import etree  # Using lxml for better XML handling
 import os
-import xml.sax.saxutils as saxutils
 
 def update_status(message):
     status_label.config(text=message)
@@ -42,40 +41,41 @@ def generate_xml():
             author_df = xl.parse('Author(s)')
 
             # Create the root XML element
-            root = ET.Element("article")
+            root = etree.Element("article")
 
             # Create journal element
-            journal_element = ET.SubElement(root, "journal")
+            journal_element = etree.SubElement(root, "journal")
             for _, row in journal_df.iterrows():
                 # Assuming column A is attributes and column B is values
-                sub_element = ET.SubElement(journal_element, row[0])  # Attribute name
+                sub_element = etree.SubElement(journal_element, row[0])  # Attribute name
                 # Create empty tags if value is NaN
-                sub_element.text = saxutils.escape(str(row[1])) if pd.notna(row[1]) else " "  # Escape special characters
+                sub_element.text = str(row[1]) if pd.notna(row[1]) else " "  # Ensure tags are empty
 
             # Create article element
-            article_element = ET.SubElement(root, "article_info")
+            article_element = etree.SubElement(root, "article_info")
             for _, row in article_df.iterrows():
                 # Assuming column A is attributes and column B is values
-                sub_element = ET.SubElement(article_element, row[0])  # Attribute name
+                sub_element = etree.SubElement(article_element, row[0])  # Attribute name
                 # Create empty tags if value is NaN
-                sub_element.text = saxutils.escape(str(row[1])) if pd.notna(row[1]) else " "  # Escape special characters
+                sub_element.text = str(row[1]) if pd.notna(row[1]) else " "  # Ensure tags are empty
 
             # Create authors list element
-            authors_element = ET.SubElement(root, "author_list")
+            authors_element = etree.SubElement(root, "author_list")
 
             # Iterate through the authors
             for col in author_df.columns[1:]:  # Skip the first column (attributes)
-                author_element = ET.SubElement(authors_element, "author")
+                author_element = etree.SubElement(authors_element, "author")
                 for index, row in author_df.iterrows():
                     # Create a sub-element for each attribute in the first column
                     attribute = author_df.iloc[index, 0]  # Get the attribute name from the first column
-                    sub_element = ET.SubElement(author_element, attribute)
+                    sub_element = etree.SubElement(author_element, attribute)
                     # Create empty tags if value is NaN
-                    sub_element.text = saxutils.escape(row[col]) if pd.notna(row[col]) else " "  # Escape special characters
+                    sub_element.text = row[col] if pd.notna(row[col]) else " "  # Ensure tags are empty
 
-            # Write to XML file
-            tree = ET.ElementTree(root)
-            tree.write(save_path, encoding='utf-8', xml_declaration=True)
+            # Write to XML file with pretty print
+            xml_str = etree.tostring(root, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+            with open(save_path, 'wb') as file:
+                file.write(xml_str)
 
             update_status(f"Success: XML file generated and saved to: {save_path}")
         except Exception as e:
@@ -84,7 +84,7 @@ def generate_xml():
 # Setup the main window
 root = tk.Tk()
 root.title("Excel to XML Converter")
-root.geometry("400x400")  # Set the initial size to 400x400
+root.geometry("600x300")  # Set the initial size to 600x400
 
 # Menu setup
 menu = tk.Menu(root)
