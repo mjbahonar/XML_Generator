@@ -46,20 +46,22 @@ def generate_xml():
             # Create journal element
             journal_element = ET.SubElement(root, "journal")
             for _, row in journal_df.iterrows():
-                sub_element = ET.SubElement(journal_element, row[0])
-                sub_element.text = ""  # This creates <tag></tag>
+                # Assuming column A is attributes and column B is values
+                sub_element = ET.SubElement(journal_element, row[0])  # Attribute name
+                sub_element.text = str(row[1]) if pd.notna(row[1]) else ""  # Value or empty
 
             # Create article element
             article_element = ET.SubElement(root, "article_info")
             for _, row in article_df.iterrows():
-                sub_element = ET.SubElement(article_element, row[0])
-                sub_element.text = ""  # This creates <tag></tag>
+                # Assuming column A is attributes and column B is values
+                sub_element = ET.SubElement(article_element, row[0])  # Attribute name
+                sub_element.text = str(row[1]) if pd.notna(row[1]) else ""  # Value or empty
 
             # Create authors list element
             authors_element = ET.SubElement(root, "author_list")
 
             # Iterate through the authors
-            for col in author_df.columns[1:]:  # Skip the first column (items)
+            for col in author_df.columns[1:]:  # Skip the first column (attributes)
                 author_element = ET.SubElement(authors_element, "author")
                 for index, row in author_df.iterrows():
                     # Create a sub-element for each attribute in the first column
