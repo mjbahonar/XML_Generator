@@ -48,14 +48,22 @@ def generate_xml():
             for _, row in journal_df.iterrows():
                 # Assuming column A is attributes and column B is values
                 sub_element = ET.SubElement(journal_element, row[0])  # Attribute name
-                sub_element.text = str(row[1]) if pd.notna(row[1]) else ""  # Value or empty
+                # Create empty tags if value is NaN
+                if pd.isna(row[1]):
+                    sub_element.text = " "  # This creates <tag></tag>
+                else:
+                    sub_element.text = str(row[1])  # Set the value if it exists
 
             # Create article element
             article_element = ET.SubElement(root, "article_info")
             for _, row in article_df.iterrows():
                 # Assuming column A is attributes and column B is values
                 sub_element = ET.SubElement(article_element, row[0])  # Attribute name
-                sub_element.text = str(row[1]) if pd.notna(row[1]) else ""  # Value or empty
+                # Create empty tags if value is NaN
+                if pd.isna(row[1]):
+                    sub_element.text = " "  # This creates <tag></tag>
+                else:
+                    sub_element.text = str(row[1])  # Set the value if it exists
 
             # Create authors list element
             authors_element = ET.SubElement(root, "author_list")
@@ -67,11 +75,16 @@ def generate_xml():
                     # Create a sub-element for each attribute in the first column
                     attribute = author_df.iloc[index, 0]  # Get the attribute name from the first column
                     sub_element = ET.SubElement(author_element, attribute)
-                    sub_element.text = row[col] if pd.notna(row[col]) else ""  # Set text or leave empty
+                    # Create empty tags if value is NaN
+                    if pd.isna(row[col]):
+                        sub_element.text = " "  # This creates <tag></tag>
+                    else:
+                        sub_element.text = row[col]  # Set the value if it exists
 
             # Write to XML file
             tree = ET.ElementTree(root)
             tree.write(save_path, encoding='utf-8', xml_declaration=True)
+
             update_status(f"Success: XML file generated and saved to: {save_path}")
         except Exception as e:
             update_status(f"Error: Failed to generate XML: {e}")
