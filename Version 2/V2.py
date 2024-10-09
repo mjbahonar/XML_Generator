@@ -5,10 +5,13 @@ import xml.etree.ElementTree as ET
 import os
 
 def open_file():
-    global excel_file_path
+    global excel_file_path, default_xml_name
     excel_file_path = filedialog.askopenfilename(
-        filetypes=[("Excel files", "*.xlsx")])
+        filetypes=[("Excel files", "*.xlsx")]
+    )
     if excel_file_path:
+        # Extract the base name for the default XML file name
+        default_xml_name = os.path.splitext(os.path.basename(excel_file_path))[0] + ".xml"
         messagebox.showinfo("File Selected", f"Selected file: {excel_file_path}")
 
 def generate_xml():
@@ -17,8 +20,10 @@ def generate_xml():
         return
     
     save_path = filedialog.asksaveasfilename(
+        initialfile=default_xml_name,
         defaultextension=".xml",
-        filetypes=[("XML files", "*.xml")])
+        filetypes=[("XML files", "*.xml")]
+    )
     
     if save_path:
         try:
@@ -59,6 +64,7 @@ def generate_xml():
 # Setup the main window
 root = tk.Tk()
 root.title("Excel to XML Converter")
+root.geometry("300x300")  # Set the initial size to 300x300
 
 # Menu setup
 menu = tk.Menu(root)
@@ -76,6 +82,7 @@ btn_generate = tk.Button(root, text="Generate", command=generate_xml)
 btn_generate.pack(pady=10)
 
 excel_file_path = None
+default_xml_name = "output.xml"
 
 # Run the application
 root.mainloop()
