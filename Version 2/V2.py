@@ -1,8 +1,11 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
 import pandas as pd
 import xml.etree.ElementTree as ET
 import os
+
+def update_status(message):
+    status_label.config(text=message)
 
 def open_file():
     global excel_file_path, default_xml_name
@@ -12,11 +15,13 @@ def open_file():
     if excel_file_path:
         # Extract the base name for the default XML file name
         default_xml_name = os.path.splitext(os.path.basename(excel_file_path))[0] + ".xml"
-        messagebox.showinfo("File Selected", f"Selected file: {excel_file_path}")
+        update_status(f"Selected file: {excel_file_path}")
+    else:
+        update_status("No file selected. Please try again.")
 
 def generate_xml():
     if not excel_file_path:
-        messagebox.showerror("Error", "Please select an Excel file first!")
+        update_status("Error: Please select an Excel file first!")
         return
     
     save_path = filedialog.asksaveasfilename(
@@ -57,9 +62,9 @@ def generate_xml():
             # Write to XML file
             tree = ET.ElementTree(root)
             tree.write(save_path, encoding='utf-8', xml_declaration=True)
-            messagebox.showinfo("Success", f"XML file generated and saved to: {save_path}")
+            update_status(f"Success: XML file generated and saved to: {save_path}")
         except Exception as e:
-            messagebox.showerror("Error", f"Failed to generate XML: {e}")
+            update_status(f"Error: Failed to generate XML: {e}")
 
 # Setup the main window
 root = tk.Tk()
@@ -81,6 +86,11 @@ btn_open.pack(pady=10)
 btn_generate = tk.Button(root, text="Generate", command=generate_xml)
 btn_generate.pack(pady=10)
 
+# Status label to show messages
+status_label = tk.Label(root, text="Please open an Excel file", fg="blue")
+status_label.pack(pady=10)
+
+# Initialize global variables
 excel_file_path = None
 default_xml_name = "output.xml"
 
